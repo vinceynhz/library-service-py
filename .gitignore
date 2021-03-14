@@ -127,3 +127,13 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+#Idea
+.idea
+.idea/*
+.idea/**/*
+.idea/**/**/*
+**/*.iml
+
+# Local database file
+database/*
