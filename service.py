@@ -23,7 +23,7 @@ def info():
 @app.route('/contributor', methods=['GET', 'POST'])
 def add_contributor():
     if request.method == 'GET':
-        return jsonify(dbschema.all_contributors())
+        return jsonify(dbschema.contributors())
 
     data = request.get_json(force=True)
     if 'name' not in data:

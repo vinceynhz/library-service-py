@@ -71,13 +71,14 @@ class Contributor(Base):
         return "<Contributor(cataloguing='%s', name='%s')>" % (self.cataloguing, self.name)
 
 
-def all_contributors():
+def contributors():
     with CloseableSession() as session:
         result = session.query(Contributor).all()
     return [c.json() for c in result]
 
 
-def add_contributor(contributor, session=None):
+def add_contributor(contributor):
     with CloseableSession() as session:
         session.add(contributor)
         session.commit()
+    return contributor
