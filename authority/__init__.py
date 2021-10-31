@@ -28,7 +28,7 @@ def _capitalize(word, force=False, articles=False):
     :param articles: whether articles should be capitalized
     :return: a capitalized word as described before.
     """
-    if not force and len([c.isalpha() and c.isupper for c in word]) >= 2:
+    if not force and len([c for c in word if c.isalpha() and c.isupper()]) >= 2:
         # If the word already has 2 upper case letters, we wont do anything for it and we'll leave it unchanged
         return word
     lower_word = word.lower()
@@ -36,7 +36,11 @@ def _capitalize(word, force=False, articles=False):
         return word.upper()
     if not articles and lower_word in _articles:
         return lower_word
-    return word.title()
+    return re.sub(
+        r"[A-Za-z]+('[A-Za-z]+)?",
+        lambda w : w.group(0).capitalize(),
+        word
+    )
 
 
 def _normalize(string):
@@ -52,14 +56,40 @@ def name(string):
     return ' '.join(words)
 
 
+def title(string):
+    """
+    :param string: to convert to proper case
+    :return: book title capitalized
+    """
+    words = string.split(' ')
+    first = [_capitalize(words[0], articles=True)]
+    words = [_capitalize(w) for w in words[1:]]
+    return ' '.join(first + words)
+
+
 def ordering_name(string):
     """
     :param string: name of an author to normalize and order
-    :return: containing the author name in normalized form removing any honorifics or roman numerals from the name and
+    :return: string containing the author name in normalized form removing any honorifics or roman numerals from the name and
     starting from the first last name
     """
     words = [w for w in _normalize(string).split(' ') if w not in _honorifics and _roman.match(w) is None]
     words.append(words.pop(0))
+    return ' '.join(words)
+
+
+def ordering_title(string):
+    """
+    :param string: title of the book to normalize and order
+    :return: string containing the title name in normalized form removing any articles that may lead the title
+    """
+    words = []
+    first_found = False
+    for w in _normalize(string).split(' '):
+        if w not in _articles and not first_found:
+            first_found = True
+        if first_found:
+            words.append(w)
     return ' '.join(words)
 
 

@@ -1,15 +1,17 @@
 """
 :author: vic on 2021-03-13
 """
-import authority
-
-from sqlalchemy import Column, Integer, String, Sequence, create_engine
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+from .book_contributor import BookContributor, ContributionType
+from .contributor import Contributor
+from .book import Book
+
+from .base import Base
 
 Engine = create_engine('sqlite:///database/library.db', echo=True)
 SessionMaker = sessionmaker(bind=Engine)
-Base = declarative_base()
 
 
 class CloseableSession(object):
@@ -23,62 +25,57 @@ class CloseableSession(object):
         self.session.close()
 
 
-class Contributor(Base):
-    """
-    Notes on contributor entities:
-
-    Normalization
-    Contributor names are going to be normalized according to the rules of title casing defined in authority.titleCase.
-
-    Ordering
-    The string used for alphabetical cataloguing will be determined according to the rules defined in
-    authority.contributorForOrdering
-
-    Please note that two or more contributors may yield the same cataloguing value:
-    - Diane Maxwell
-    - Dr. Diane Maxwell
-    - Diane Maxwell Jr.
-    - Diane Maxwell III
-
-    All above names would be ordered as "maxwell diane" once all honorifics, special characters and roman numerals are
-    removed.
-
-    Uniqueness
-    A contributor uniqueness is determined by the authority.sha256 function over the normalized version of the
-    contributor's name as described above.
-
-    The case for homonym contributors is still to be determined
-    """
-    __tablename__ = 'contributor'
-
-    id = Column(Integer, Sequence('user_id_seq'), primary_key=True)
-    sha256 = Column(String(64))
-    name = Column(String(255))
-    cataloguing = Column(String(255))
-
-    @classmethod
-    def maker(cls, data):
-        case_name = authority.name(data['name'])
-        cataloguing = authority.ordering_name(data['name'])
-        sha256 = authority.sha56(case_name)
-
-        return Contributor(name=case_name, cataloguing=cataloguing, sha256=sha256)
-
-    def json(self):
-        return {k: getattr(self, k) for k in self.__dir__() if k in ('id', 'sha256', 'name', 'cataloguing')}
-
-    def __repr__(self):
-        return "<Contributor(cataloguing='%s', name='%s')>" % (self.cataloguing, self.name)
-
-
-def contributors():
+def get_contributors():
     with CloseableSession() as session:
         result = session.query(Contributor).all()
-    return [c.json() for c in result]
+        return [c.json() for c in result]
 
 
-def add_contributor(contributor):
+def get_contributor(contributor_id: int):
     with CloseableSession() as session:
-        session.add(contributor)
+        result = session.query(Contributor).filter(Contributor.id == contributor_id).first()
+        return result.json() if result is not None else None
+
+
+def add_contributor(new_contributor: Contributor):
+    with CloseableSession() as session:
+        # ez pz slice of ch-z
+        session.add(new_contributor)
         session.commit()
-    return contributor
+        return str(new_contributor.id)
+
+
+def get_books():
+    with CloseableSession() as session:
+        result = session.query(Book).all()
+        return [b.json() for b in result]
+
+
+def get_book(book_id: int):
+    with CloseableSession() as session:
+        result = session.query(Book).filter(Book.id == book_id).first()
+        return result.json() if result is not None else None
+
+
+def add_book(new_book: Book, contributors: dict):
+    with CloseableSession() as session:
+        # get the managed contributors to be added
+        ids_to_search = contributors.keys()
+        found_contributors = session.query(Contributor).filter(Contributor.id.in_(ids_to_search)).all()
+        assert found_contributors is not None and len(found_contributors) > 0
+
+        # create associations
+        for found in found_contributors:
+            # get the type of contribution
+            contribution_type = ContributionType.parse(contributors[str(found.id)])
+            # create the contribution
+            contribution = BookContributor(contribution=contribution_type, contributor=found)
+            new_book.contributors.append(contribution)
+
+        new_book.generate_sha256()
+
+        # add the book to the database
+        session.add(new_book)
+        session.commit()
+
+        return str(new_book.id)

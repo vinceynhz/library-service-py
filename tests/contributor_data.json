@@ -46,5 +46,44 @@
     "name": "Diane Maxwell III",
     "cataloguing": "maxwell diane",
     "sha256": "59229D079EFB31209792E599E66D7811B324B7841118447D8F949AE53B7A2477"
+  },
+  {
+    "input": "Stephen King",
+    "name": "Stephen King",
+    "cataloguing": "king stephen",
+    "sha256": "3856586E28AD1FC06ECE3C7FF94598CFD30799375C7335EE4B8D9F3BC002A85D"
+  },
+  {
+    "input": "STEPHEN KING",
+    "name": "Stephen King",
+    "cataloguing": "king stephen",
+    "sha256": "3856586E28AD1FC06ECE3C7FF94598CFD30799375C7335EE4B8D9F3BC002A85D",
+    "duplicate": "true"
+  },
+  {
+    "input": "stephen king",
+    "name": "Stephen King",
+    "cataloguing": "king stephen",
+    "sha256": "3856586E28AD1FC06ECE3C7FF94598CFD30799375C7335EE4B8D9F3BC002A85D",
+    "duplicate": "true"
+  },
+  {
+    "input": "stephenk ing",
+    "name": "Stephenk Ing",
+    "cataloguing": "ing stephenk",
+    "sha256": "B4B35F86D0E5F69636CFFD06000E6016CD7A97030797589CF846A61497CA65AE"
+  },
+  {
+    "input": "KING STEPHEN",
+    "name": "King Stephen",
+    "cataloguing": "stephen king",
+    "sha256": "E4AC4CADA83F399F6442B9996BC71B97EBB46E0630610D16AE85153241978BE5"
+  },
+  {
+    "input": "king stephen",
+    "name": "King Stephen",
+    "cataloguing": "stephen king",
+    "sha256": "E4AC4CADA83F399F6442B9996BC71B97EBB46E0630610D16AE85153241978BE5",
+    "duplicate": "true"
   }
 ]

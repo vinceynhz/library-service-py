@@ -7,9 +7,13 @@ import unittest
 
 
 class TestAuthorityMethods(unittest.TestCase):
-    def setUp(self):
+
+    @classmethod
+    def setUpClass(cls):
         with open('tests/contributor_data.json', 'r') as infile:
-            self.contributor_data = json.load(infile)
+            cls.contributor_data = json.load(infile)
+        with open('tests/book_data.json', 'r') as infile:
+            cls.book_data = json.load(infile)
 
     def test_isalphanum(self):
         for i in range(128):
@@ -30,13 +34,26 @@ class TestAuthorityMethods(unittest.TestCase):
         for tc in self.contributor_data:
             self.assertEqual(tc['name'], authority.name(tc['input']))
 
+    def test_title(self):
+        for tc in self.book_data:
+            self.assertEqual(tc['title']['expected'], authority.title(tc['title']['input']))
+
     def test_sha256(self):
+        # test from test cases
         for tc in self.contributor_data:
             self.assertEqual(tc['sha256'], authority.sha56(tc['input']))
+
+        # These two should also return the same SHA between them since the special characters do not count
+        salems_lot_sha = "1C660F4FCD1746AC8C689C3142A3C79BE56077824BF11F434B6F150F78CFD236"
+
+        self.assertEqual(salems_lot_sha, authority.sha56("'Salem's Lot"))
+        self.assertEqual(salems_lot_sha, authority.sha56("Salems Lot"))
 
     def test_cataloguing(self):
         for tc in self.contributor_data:
             self.assertEqual(tc['cataloguing'], authority.ordering_name(tc['input']))
+        for tc in self.book_data:
+            self.assertEqual(tc['title']['cataloguing'], authority.ordering_title(tc['title']['input']))
 
 
 if __name__ == '__main__':

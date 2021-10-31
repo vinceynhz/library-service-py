@@ -1,0 +1,166 @@
+[
+  {
+    "title": {
+      "input": "it",
+      "expected": "It",
+      "cataloguing": "it"
+    },
+    "sha256": "65B382831D14F38A16F2390F9007956D81D458E6A0A7A0F06E422BC8B02FDF82",
+    "format": "PAPERBACK",
+    "contributors": [
+      {
+        "id": 1,
+        "sha256": "C18C4479A3BD20FBAAD390E7815E765C4D57933760FF5AB8252AFCCFD9A94547",
+        "type": "AUTHOR"
+      },
+      {
+        "id": 2,
+        "sha256": "8472DA49919D0E48C7F0164FC2982C72E3083B85C57AB6E0389235C90E142634",
+        "type": "ILLUSTRATOR"
+      }
+    ]
+  },
+  {
+    "title": {
+      "input": "and then tHere Were nonE",
+      "expected": "And Then There Were None",
+      "cataloguing": "and then there were none"
+    },
+    "sha256": "7F0969FCC930FC48C1A7F2F9C9FAD999503512537D8D4BA42D2802B084A1F30B",
+    "format": "HARDBACK",
+    "contributors": [
+      {
+        "id": 3,
+        "sha256": "890F9118D9F5E368FF9A39DEE3108C6C770B6595F5DEBEBCF121C8815A285952",
+        "type": "TRANSLATOR"
+      },
+      {
+        "id": 4,
+        "sha256": "0CD43492EF3AE0D7139B8F1942FC076160E2A6FD4F3D7D603E15A0C77225766A",
+        "type": "AUTHOR"
+      }
+    ]
+  },
+  {
+    "title": {
+      "input": "Of The Mice Of Green",
+      "expected": "Of the Mice of Green",
+      "cataloguing": "mice of green"
+    },
+    "sha256": "68DA6124884C70A6743804619DFB524FE29499EB6C4D760CFD2C06A279E17748",
+    "format": "AUDIOBOOK",
+    "contributors": [
+      {
+        "id": 5,
+        "sha256": "B2882CC50026377458C31A3D578ABD08C6957113B51BEF2290082B3390B06D6D",
+        "type": "ILLUSTRATOR"
+      },
+      {
+        "id": 6,
+        "sha256": "466C76D0B7AE78C042F1EEF2D35AB8B56316F441D09E130F0973BDD463329DDC",
+        "type": "AUTHOR"
+      }
+    ]
+  },
+  {
+    "title": {
+      "input": "ANNE OF THE GREEN GABLES",
+      "expected": "ANNE OF THE GREEN GABLES",
+      "cataloguing": "anne of the green gables"
+    },
+    "sha256": "4C72D4A03D11CA62917B2663D1535925DB05A53E32B2332C3EAD2485FF88C687",
+    "format": "EBOOK",
+    "contributors": [
+      {
+        "id": 7,
+        "sha256": "9D430511015B13F2A71EC810777AD41D71E33BE59E7872F47CD999E12A03ADA4",
+        "type": "AUTHOR"
+      }
+    ]
+  },
+  {
+    "title": {
+      "input": "star wars iv",
+      "expected": "Star Wars IV",
+      "cataloguing": "star wars iv"
+    },
+    "sha256": "3C5CA1F3087B3B5F40CD64BA6362ED3F7738A0A2787A6D8367073DBC0C33CE93",
+    "format": "PAPERBACK",
+    "contributors": [
+      {
+        "id": 8,
+        "sha256": "59229D079EFB31209792E599E66D7811B324B7841118447D8F949AE53B7A2477",
+        "type": "AUTHOR"
+      }
+    ]
+  },
+  {
+    "title": {
+      "input": "'Salem's Lot",
+      "expected": "'Salem's Lot",
+      "cataloguing": "salems lot"
+    },
+    "sha256": "51E9562617C04605EB03BDAF59D6436987450417EEBD5E9BF42C405FCFB66E2F",
+    "format": "AUDIOBOOK",
+    "contributors": [
+      {
+        "id": 3,
+        "sha256": "890F9118D9F5E368FF9A39DEE3108C6C770B6595F5DEBEBCF121C8815A285952",
+        "type": "TRANSLATOR"
+      },
+      {
+        "id": 4,
+        "sha256": "0CD43492EF3AE0D7139B8F1942FC076160E2A6FD4F3D7D603E15A0C77225766A",
+        "type": "AUTHOR"
+      }
+    ]
+  },
+  {
+    "title": {
+      "input": "A Starry Night",
+      "expected": "A Starry Night",
+      "cataloguing": "starry night"
+    },
+    "sha256": "CDA29E79DB9C348E6F179C5117613F9A9F86EF342A3B9AAA53B991B7C2716D60",
+    "format": "HARDBACK",
+    "contributors": [
+      {
+        "id": 4,
+        "sha256": "0CD43492EF3AE0D7139B8F1942FC076160E2A6FD4F3D7D603E15A0C77225766A",
+        "type": "AUTHOR"
+      }
+    ]
+  },
+  {
+    "title": {
+      "input": "An unfortunate Case",
+      "expected": "An Unfortunate Case",
+      "cataloguing": "unfortunate case"
+    },
+    "sha256": "F3EBABDA305790F247A6329262C3D5996CA2519A3BC6F8D3DE07DA8BA1A5C0F8",
+    "format": "EBOOK",
+    "contributors": [
+      {
+        "id": 10,
+        "sha256": "B4B35F86D0E5F69636CFFD06000E6016CD7A97030797589CF846A61497CA65AE",
+        "type": "AUTHOR"
+      }
+    ]
+  },
+  {
+    "title": {
+      "input": "The gunslinger",
+      "expected": "The Gunslinger",
+      "cataloguing": "gunslinger"
+    },
+    "sha256": "1101CCE878067BA8C0DB610A73891278C481CE2BD4A23C78442987946E0479B7",
+    "format": "AUDIOBOOK",
+    "contributors": [
+      {
+        "id": 11,
+        "sha256": "E4AC4CADA83F399F6442B9996BC71B97EBB46E0630610D16AE85153241978BE5",
+        "type": "AUTHOR"
+      }
+    ]
+  }
+]

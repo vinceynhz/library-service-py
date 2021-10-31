@@ -37,6 +37,11 @@ For prod install
 make init
 ```
 
+To run the application using gunicorn (available in the virtual environment)
+```
+make run
+```
+
 ## Data Model
 
 The purpose of this document is to describe the list of all concepts related to the data definition, access and usage
