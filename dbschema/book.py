@@ -40,9 +40,9 @@ class Book(Base):
         book_format = BookFormat.parse(data['format'])
         raw_title = data['title']
         clean_title = authority.title(raw_title)
-        ordering_title = authority.ordering_title(raw_title)
+        cataloguing = authority.ordering_title(raw_title)
         return Book(title=clean_title,
-                    cataloguing=ordering_title,
+                    cataloguing=cataloguing,
                     format=book_format,
                     # sha256
                     isbn=data['isbn'] if 'isbn' in data else None,

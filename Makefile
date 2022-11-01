@@ -17,4 +17,12 @@ test: venv
 	venv/bin/coverage html
 
 run: db
-	venv/bin/gunicorn "service:start()" --timeout 1000 --log-config logging.conf
+	$(eval NPROC := $(shell nproc))
+	$(eval WORKERS := $(shell expr 2 \* ${NPROC} + 1))
+	venv/bin/gunicorn "service:start()" -w ${WORKERS} --timeout 1000 --log-config logging.conf
+
+cli: venv
+	venv/bin/python cli.py
+
+ui: venv
+	venv/bin/fbs run

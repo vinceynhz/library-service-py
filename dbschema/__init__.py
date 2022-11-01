@@ -10,6 +10,8 @@ from .book import Book
 
 from .base import Base
 
+import authority
+
 Engine = create_engine('sqlite:///database/library.db', echo=True)
 SessionMaker = sessionmaker(bind=Engine)
 
@@ -79,3 +81,50 @@ def add_book(new_book: Book, contributors: dict):
         session.commit()
 
         return str(new_book.id)
+
+
+def normalize_contributors(contributors: list):
+    ids = set()
+    result = []
+    for entry in contributors:
+        case_name = authority.name(entry)
+        sha256 = authority.sha56(case_name)
+        if sha256 not in ids:
+            ids.add(sha256)
+            cataloguing = authority.ordering_name(case_name)
+            result.append({'name': case_name, 'cataloguing': cataloguing, 'sha256': sha256})
+    return result
+
+
+def normalize_books(books: list):
+    result = {}
+    for entry in books:
+        raw_title = entry['title']
+        raw_contributors = entry['contributors']
+
+        clean_title = authority.title(raw_title)
+        normalized_contributors = normalize_contributors(raw_contributors)
+
+        unique_key = clean_title + "|" + "-".join([c['sha256'] for c in normalized_contributors])
+        sha256 = authority.sha56(unique_key)
+
+        if sha256 not in result:
+            cataloguing = authority.ordering_title(raw_title)
+            result[sha256] = ({
+                'title': clean_title,
+                'cataloguing': cataloguing,
+                'sha256': sha256,
+                'contributors': normalized_contributors,
+                'isbn': entry['isbn'] if 'isbn' in entry else None,
+                'year': entry['year'] if 'year' in entry else None,
+                'language': entry['language'] if 'language' in entry else None
+            })
+
+    return result.values()
+
+
+def search_contributors(names: list):
+    with CloseableSession() as session:
+        found = session.query(Contributor).filter(Contributor.name.in_(names)).all()
+        result = [c.json() for c in found]
+        return result
