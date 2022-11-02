@@ -612,5 +612,9 @@ def match_lang(string):
 
 def desc_lang(string):
     if string in _iso_639_2:
-        return _iso_639_2[string]
+        return f"{_iso_639_2[string]} ({string})"
     return 'Unknown'
+
+
+def get_langs():
+    return {i[0]: i[1] for i in sorted(_iso_639_2.items(), key=lambda x: x[1])}

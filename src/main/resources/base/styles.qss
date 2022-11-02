@@ -1,8 +1,15 @@
 QLineEdit {
+    margin: 3px;
+    padding: 2px;
     min-width: 20em;
     max-width: 30em;
 }
 
 QPushButton {
     max-width: 10em;
+}
+
+QComboBox {
+    margin: 3px;
+    padding: 2px;
 }

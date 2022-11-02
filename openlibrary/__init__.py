@@ -73,10 +73,13 @@ class Book(object):
     def get_book_format(self):
         return self._book_format
 
-    def set_book_format(self, book_format: str):
-        for name, member in BookFormat.__members__.items():
-            if name.lower()[0] == book_format.lower()[0]:
-                self._book_format = member
+    def set_book_format(self, book_format):
+        if type(book_format) is str:
+            for name, member in BookFormat.__members__.items():
+                if name.lower()[0] == book_format.lower()[0]:
+                    self._book_format = member
+        if type(book_format) is BookFormat:
+            self._book_format = book_format
 
     def _for_json(self, attribute: str):
         value = getattr(self, attribute)
