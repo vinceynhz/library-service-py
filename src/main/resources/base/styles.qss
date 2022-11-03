@@ -13,3 +13,12 @@ QComboBox {
     margin: 3px;
     padding: 2px;
 }
+
+QTableWidget {
+    margin-left: 3px;
+}
+
+QToolButton[author="true"] {
+    margin-right: 3px;
+}
+

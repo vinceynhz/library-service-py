@@ -3,6 +3,7 @@ import json
 import authority
 
 from dbschema.book import BookFormat
+from typing import Union
 
 
 class SearchException(Exception):
@@ -47,8 +48,9 @@ class Book(object):
     def get_author(self):
         return self._author
 
-    def set_author(self, author: str):
-        author = author.split(",")
+    def set_author(self, author: Union[str, list]):
+        if type(author) is str:
+            author = author.split(",")
         self._author = [authority.name(a) for a in author]
         self._catalogue_author = [authority.ordering_name(a) for a in author]
 
@@ -73,7 +75,7 @@ class Book(object):
     def get_book_format(self):
         return self._book_format
 
-    def set_book_format(self, book_format):
+    def set_book_format(self, book_format: Union[str, BookFormat]):
         if type(book_format) is str:
             for name, member in BookFormat.__members__.items():
                 if name.lower()[0] == book_format.lower()[0]:
