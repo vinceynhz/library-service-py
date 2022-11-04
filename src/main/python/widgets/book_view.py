@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QHBoxLayout, QLineEdit, QLayout, QDialog, QDialogBut
 from PyQt5.QtGui import QKeySequence, QIcon, QFocusEvent
 from PyQt5.QtCore import Qt
 
-from src.main.python.base import context
+from src.main.python.base import get_resource
 
 import json
 
@@ -18,7 +18,7 @@ class AuthorToolButton(QToolButton):
     # noinspection PyUnresolvedReferences
     def __init__(self, parent, name: str, shortcut: str, icon: str, call):
         super().__init__(parent)
-        self.setIcon(QIcon(context.get_resource(icon)))
+        self.setIcon(QIcon(get_resource(icon)))
         self.setToolTip(f"{name} - {shortcut}")
         self.setFocusPolicy(Qt.NoFocus)
         self.action = QShortcut(QKeySequence(shortcut), self)

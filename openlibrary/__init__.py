@@ -1,4 +1,4 @@
-import subprocess
+import requests
 import json
 import authority
 
@@ -104,17 +104,23 @@ def search(param: str, config: dict):
     elif ':' not in param:
         raise SearchException("Ambiguous search, use field names to narrow query")
 
-    param = param.replace(" ", "%20")
+    params = {
+        'q': param, 
+        'fields': 'title,author_name,language,publish_year,isbn',
+        'limit': 1
+    }
+    result = requests.get(f'http://openlibrary.org/search.json', params=params)
 
-    command = f'curl -s "http://openlibrary.org/search.json?q={param}' \
-              '&fields=title,author_name,language,publish_year,isbn&limit=1"'
+    if result.status_code != requests.codes.ok:
+        raise SearchException(str(result.http_error))
 
     try:
-        result = subprocess.check_output([command], shell=True, stderr=None)
-    except subprocess.CalledProcessError as error:
-        raise SearchException(error)
-
-    data = json.loads(result)
+        data = result.json()
+    except requests.exceptions.JSONDecodeError as error:
+        if hasattr('messsage', error):
+            raise SearchException(error.message)
+        else:
+            raise SearchException(str(error))
 
     if 'numFound' not in data or data['numFound'] == 0:
         raise SearchException("No results found")

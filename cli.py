@@ -1,7 +1,7 @@
 """
  :author: vic on 2022-09-25
 """
-import readline
+# import readline
 import os
 import atexit
 import json
@@ -175,17 +175,27 @@ def view_book():
 
 def main():
     logging.basicConfig(level=logging.DEBUG, filename='./cli.log')
-    hist_file = os.path.join(os.path.expanduser("~"), ".python_history")
-    try:
-        readline.read_history_file(hist_file)
-    except FileNotFoundError:
-        pass
+    # hist_file = os.path.join(os.path.expanduser("~"), ".python_history")
+    # try:
+        # readline.read_history_file(hist_file)
+    # except FileNotFoundError:
+        # pass
 
     print()
     print(f"{Action.CONFIG}Reading default config")
-    with open('./database/config.json') as infile:
-        config = json.load(infile)
-    print(f"{Action.CONFIG}Config loaded")
+    try:
+        with open('./database/config.json', 'r') as infile:
+            config = json.load(infile)
+        print(f"{Action.CONFIG}Config loaded")
+    except FileNotFoundError:
+        print(f"{Action.CONFIG}Default config not set, creating one")
+        config = {
+            'db_file': './database/cli.db',
+            'language': 'eng',
+            'book_format': 'HARDBACK'
+        }
+        with open('./database/config.json', 'w+') as outfile:
+            json.dump(config, outfile, indent=2)
 
     while True:
         try:
@@ -212,7 +222,7 @@ def main():
         except (Exception,):
             logging.exception("Error")
 
-    atexit.register(readline.write_history_file, hist_file)
+    # atexit.register(readline.write_history_file, hist_file)
     print()
 
 
