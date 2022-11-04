@@ -161,3 +161,12 @@ def link(resource_link):
     return {
         '_link': resource_link
     }
+
+
+if __name__ == '__main__':
+    if sys.argv[1] == '-cli':
+        import books.cli
+        books.cli.run()
+    elif sys.argv[1] == '-ui':
+        import books.ui
+        books.ui.run(sys.argv)

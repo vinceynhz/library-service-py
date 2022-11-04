@@ -6,7 +6,7 @@ from PyQt5.QtGui import QKeySequence
 
 import json
 
-import openlibrary
+from dbschema import BookFormat
 import authority
 
 
@@ -35,7 +35,7 @@ class SettingsViewWidget(QDialog):
         self.languages_combo.setCurrentText(authority.desc_lang(self.config['language']))
 
         self.book_format_combo = QComboBox()
-        for name, member in openlibrary.BookFormat.__members__.items():
+        for name, member in BookFormat.__members__.items():
             self.book_format_combo.addItem(name, userData=member)
         form.addRow(QLabel("Default Format"), self.book_format_combo)
         self.book_format_combo.setCurrentText(self.config['book_format'])

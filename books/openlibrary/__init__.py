@@ -1,5 +1,4 @@
 import requests
-import json
 import authority
 
 from dbschema.book import BookFormat
@@ -109,15 +108,15 @@ def search(param: str, config: dict):
         'fields': 'title,author_name,language,publish_year,isbn',
         'limit': 1
     }
-    result = requests.get(f'http://openlibrary.org/search.json', params=params)
+    result = requests.get("http://openlibrary.org/search.json", params=params)
 
     if result.status_code != requests.codes.ok:
-        raise SearchException(str(result.http_error))
+        result.raise_for_status()
 
     try:
         data = result.json()
     except requests.exceptions.JSONDecodeError as error:
-        if hasattr('messsage', error):
+        if hasattr(error, 'message'):
             raise SearchException(error.message)
         else:
             raise SearchException(str(error))

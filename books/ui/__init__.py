@@ -2,17 +2,16 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMainWindow, QLayout, QShortcut, QApplication
 from PyQt5.QtGui import QKeySequence, QIcon
 
-from src.main.python.base import get_resource
-from src.main.python.widgets.settings_view import SettingsViewWidget
-from src.main.python.widgets.book_view import BookViewWidget
-from src.main.python.widgets.search_widget import SearchWidget
+from books.ui.widgets import SettingsViewWidget, BookViewWidget, SearchWidget
+from books.ui.resources import get_icon, get_resource
 
 import sys
 import json
-
-import openlibrary
+import logging
+import books.openlibrary as openlibrary
 
 __win__ = 'win' in sys.platform
+
 
 # noinspection PyUnresolvedReferences
 class MainWindow(QMainWindow):
@@ -30,14 +29,14 @@ class MainWindow(QMainWindow):
         tools = self.addToolBar("File")
         tools.setMovable(False)
 
-        add_action = tools.addAction(QIcon(get_resource("book.png")), "New Book")
+        add_action = tools.addAction(QIcon(get_icon("book.png")), "New Book")
         add_action.setShortcut(QKeySequence('Ctrl+N'))
         add_action.triggered.connect(self.on_add)
         add_action.setToolTip("New Book - Ctrl+N")
 
         tools.addSeparator()
 
-        settings_action = tools.addAction(QIcon(get_resource("settings.png")), "Settings")
+        settings_action = tools.addAction(QIcon(get_icon("settings.png")), "Settings")
         settings_action.setShortcut(QKeySequence('Ctrl+K'))
         settings_action.triggered.connect(self.on_settings)
         settings_action.setToolTip("Settings - Ctrl+K")
@@ -58,11 +57,12 @@ class MainWindow(QMainWindow):
             else:
                 self.statusBar().showMessage("Ready")
             self.search.clear()
-        except openlibrary.SearchException as error:
+        except (Exception,) as error:
             if hasattr(error, 'message'):
                 self.statusBar().showMessage("Error: " + error.message)
             else:
                 self.statusBar().showMessage("Error: " + str(error))
+            logging.error(error)
 
     def on_add(self):
         self.statusBar().showMessage("Adding new book")
@@ -82,23 +82,30 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage("Ready")
 
 
-if __name__ == '__main__':
+def run(argv):
+    logging.basicConfig(level=logging.DEBUG, filename='./ui.log')
     if __win__:
         import ctypes
-        myappid = 'tandv.library.ui' # arbitrary string
+        myappid = 'tandv.library.books.ui'  # arbitrary string
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
-    app = QApplication(sys.argv)
+    app = QApplication(argv)
 
     stylesheet = get_resource('styles.qss')
     app.setStyleSheet(open(stylesheet).read())
 
     icon = QIcon()
-    icon.addFile('./src/main/icons/base/16.png')
-    icon.addFile('./src/main/icons/base/24.png')
-    icon.addFile('./src/main/icons/base/32.png')
-    icon.addFile('./src/main/icons/base/48.png')
-    icon.addFile('./src/main/icons/base/64.png')
+    if __win__:
+        icon.addFile(get_icon('16.png'))
+        icon.addFile(get_icon('24.png'))
+        icon.addFile(get_icon('32.png'))
+        icon.addFile(get_icon('48.png'))
+        icon.addFile(get_icon('64.png'))
+    else:
+        icon.addFile(get_icon('128.png'))
+        icon.addFile(get_icon('256.png'))
+        icon.addFile(get_icon('512.png'))
+        icon.addFile(get_icon('1024.png'))
     app.setWindowIcon(icon)
 
     with open('./database/config.json') as infile:

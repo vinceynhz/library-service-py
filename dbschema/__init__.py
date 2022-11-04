@@ -6,8 +6,7 @@ from sqlalchemy.orm import sessionmaker
 
 from .book_contributor import BookContributor, ContributionType
 from .contributor import Contributor
-from .book import Book
-
+from .book import Book, BookFormat
 from .base import Base
 
 import authority

@@ -1,17 +1,18 @@
 """
  :author: vic on 2022-09-25
 """
-# import readline
+
 import os
-import atexit
+import sys
 import json
 import logging
 
 import authority
-import openlibrary
+import books.openlibrary as openlibrary
 
 from dbschema.book import BookFormat
 
+__win__ = 'win' in sys.platform
 os.system("")
 
 
@@ -173,13 +174,17 @@ def view_book():
     print(f"{Action.VIEW}")
 
 
-def main():
+def run():
     logging.basicConfig(level=logging.DEBUG, filename='./cli.log')
-    # hist_file = os.path.join(os.path.expanduser("~"), ".python_history")
-    # try:
-        # readline.read_history_file(hist_file)
-    # except FileNotFoundError:
-        # pass
+    if not __win__:
+        import readline
+        import atexit
+        hist_file = os.path.join(os.path.expanduser("~"), ".python_history")
+        try:
+            readline.read_history_file(hist_file)
+        except FileNotFoundError:
+            pass
+        atexit.register(readline.write_history_file, hist_file)
 
     print()
     print(f"{Action.CONFIG}Reading default config")
@@ -190,7 +195,7 @@ def main():
     except FileNotFoundError:
         print(f"{Action.CONFIG}Default config not set, creating one")
         config = {
-            'db_file': './database/cli.db',
+            'db_file': './database/books.cli.db',
             'language': 'eng',
             'book_format': 'HARDBACK'
         }
@@ -219,12 +224,8 @@ def main():
             print(f"{Color.YELLOW}{error}{Color.RESET}")
         except AttributeError as error:
             print(f"{Color.YELLOW}{error}{Color.RESET}")
-        except (Exception,):
+        except (Exception,) as error:
+            print(f"{Color.RED}ERROR:{Color.RESET} {error}")
             logging.exception("Error")
 
-    # atexit.register(readline.write_history_file, hist_file)
     print()
-
-
-if __name__ == '__main__':
-    main()

@@ -6,11 +6,11 @@ from PyQt5.QtWidgets import QHBoxLayout, QLineEdit, QLayout, QDialog, QDialogBut
 from PyQt5.QtGui import QKeySequence, QIcon, QFocusEvent
 from PyQt5.QtCore import Qt
 
-from src.main.python.base import get_resource
+from dbschema import BookFormat
+from books.openlibrary import Book
+from ..resources import get_icon
 
 import json
-
-import openlibrary
 import authority
 
 
@@ -18,7 +18,7 @@ class AuthorToolButton(QToolButton):
     # noinspection PyUnresolvedReferences
     def __init__(self, parent, name: str, shortcut: str, icon: str, call):
         super().__init__(parent)
-        self.setIcon(QIcon(get_resource(icon)))
+        self.setIcon(QIcon(get_icon(icon)))
         self.setToolTip(f"{name} - {shortcut}")
         self.setFocusPolicy(Qt.NoFocus)
         self.action = QShortcut(QKeySequence(shortcut), self)
@@ -93,7 +93,7 @@ class AuthorTable(QTableWidget):
 
 # noinspection PyUnresolvedReferences
 class BookViewWidget(QDialog):
-    def __init__(self, parent, config: dict, book: openlibrary.Book = None, param: str = None):
+    def __init__(self, parent, config: dict, book: Book = None, param: str = None):
         super().__init__(parent)
 
         self.setWindowTitle("Books - Edit")
@@ -145,7 +145,7 @@ class BookViewWidget(QDialog):
         form.addRow(QLabel("Language"), self.languages_combo)
 
         self.book_format_combo = QComboBox()
-        for name, member in openlibrary.BookFormat.__members__.items():
+        for name, member in BookFormat.__members__.items():
             self.book_format_combo.addItem(name, userData=member)
         form.addRow(QLabel("Format"), self.book_format_combo)
 
@@ -188,7 +188,7 @@ class BookViewWidget(QDialog):
         if not self.book_format_combo.hasFocus():
             return
         if self.book is None:
-            self.book = openlibrary.Book(
+            self.book = Book(
                 self.title_text.text(),
                 self.author_table.get_data(),
                 self.isbn_text.text(),
