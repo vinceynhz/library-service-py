@@ -14,6 +14,11 @@ QComboBox {
     padding: 2px;
 }
 
+QComboBox[search="true"] {
+    min-width: 20em;
+    max-width: 20em;
+}
+
 QTableWidget {
     margin-left: 3px;
 }
@@ -22,3 +27,11 @@ QToolButton[author="true"] {
     margin-right: 3px;
 }
 
+QSpinBox[nav="true"] {
+  min-width: 2em;
+  max-width: 5em;
+}
+
+QLabel[nav="true"] {
+
+}

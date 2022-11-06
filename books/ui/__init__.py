@@ -2,7 +2,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMainWindow, QLayout, QShortcut, QApplication
 from PyQt5.QtGui import QKeySequence, QIcon
 
-from books.ui.widgets import SettingsViewWidget, BookViewWidget, SearchWidget
+from books.ui.widgets import SettingsViewWidget, BookViewWidget, BookBrowserWidget, SearchWidget
 from books.ui.resources import get_icon, get_resource
 
 import sys
@@ -33,6 +33,11 @@ class MainWindow(QMainWindow):
         add_action.setShortcut(QKeySequence('Ctrl+N'))
         add_action.triggered.connect(self.on_add)
         add_action.setToolTip("New Book - Ctrl+N")
+
+        browse_action = tools.addAction(QIcon(get_icon("library.png")), "Browse")
+        browse_action.setShortcut(QKeySequence('Ctrl+B'))
+        browse_action.triggered.connect(self.on_browse)
+        browse_action.setToolTip("Browse - Ctrl+B")
 
         tools.addSeparator()
 
@@ -72,6 +77,12 @@ class MainWindow(QMainWindow):
         else:
             self.statusBar().showMessage("Ready")
         self.search.clear()
+
+    def on_browse(self):
+        self.statusBar().showMessage("Browse books")
+        book_browser = BookBrowserWidget(self, self.config)
+        book_browser.exec()
+        self.statusBar().showMessage("Done!")
 
     def on_settings(self):
         self.statusBar().showMessage("Settings")
@@ -115,4 +126,6 @@ def run(argv):
     window.show()
 
     exit_code = app.exec_()
+
+    # window.search.hist
     sys.exit(exit_code)

@@ -1,10 +1,11 @@
 """
  :author: vic on 2022-11-02
 """
-from PyQt5.QtWidgets import QHBoxLayout, QLineEdit, QLayout, QDialog, QDialogButtonBox, QLabel, QFormLayout, \
-    QShortcut, QComboBox, QTableWidget, QTableWidgetItem, QAbstractItemView, QToolButton, QVBoxLayout, QHeaderView
-from PyQt5.QtGui import QKeySequence, QIcon, QFocusEvent
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QHBoxLayout, QLineEdit, QLayout, QDialog, QLabel, QFormLayout, \
+    QShortcut, QComboBox, QTableWidget, QTableWidgetItem, QAbstractItemView, QToolButton, QVBoxLayout, QHeaderView, \
+    QPushButton
+from PyQt5.QtGui import QKeySequence, QIcon, QFocusEvent, QKeyEvent
+from PyQt5.QtCore import Qt, pyqtSignal
 
 from dbschema import BookFormat
 from books.openlibrary import Book
@@ -14,9 +15,9 @@ import json
 import authority
 
 
-class AuthorToolButton(QToolButton):
+class ActionToolButton(QToolButton):
     # noinspection PyUnresolvedReferences
-    def __init__(self, parent, name: str, shortcut: str, icon: str, call):
+    def __init__(self, parent, name: str, shortcut: str, icon: str, call, prop_name: str = "author"):
         super().__init__(parent)
         self.setIcon(QIcon(get_icon(icon)))
         self.setToolTip(f"{name} - {shortcut}")
@@ -24,10 +25,12 @@ class AuthorToolButton(QToolButton):
         self.action = QShortcut(QKeySequence(shortcut), self)
         self.clicked.connect(call)
         self.action.activated.connect(call)
-        self.setProperty("author", True)
+        self.setProperty(prop_name, True)
 
 
 class AuthorTable(QTableWidget):
+    itemDeleted = pyqtSignal()
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setAlternatingRowColors(True)
@@ -61,6 +64,7 @@ class AuthorTable(QTableWidget):
 
         current_row = self.currentRow()
         self.removeRow(current_row)
+        self.itemDeleted.emit()
 
     def up(self):
         current_row = self.currentRow()
@@ -96,17 +100,11 @@ class BookViewWidget(QDialog):
     def __init__(self, parent, config: dict, book: Book = None, param: str = None):
         super().__init__(parent)
 
-        self.setWindowTitle("Books - Edit")
-        self.book = book
+        self.setWindowTitle(self.get_title())
         self.config = config
 
         save_action = QShortcut(QKeySequence('Ctrl+S'), self)
         save_action.activated.connect(self.save)
-
-        buttons = QDialogButtonBox.Cancel | QDialogButtonBox.Save
-        button_box = QDialogButtonBox(buttons)
-        button_box.accepted.connect(self.save)
-        button_box.rejected.connect(self.reject)
 
         form = QFormLayout()
         form.setSizeConstraint(QLayout.SetFixedSize)
@@ -114,24 +112,25 @@ class BookViewWidget(QDialog):
         self.title_text = QLineEdit()
         form.addRow(QLabel("Title"), self.title_text)
 
-        self.author_tools = QVBoxLayout()
         self.author_table = AuthorTable()
-        self.author = QHBoxLayout()
-        self.author.addWidget(self.author_table)
-        self.author.addLayout(self.author_tools)
 
-        add_author = AuthorToolButton(self, "Add", "Shift+Ctrl+A", "plus.png", self.author_table.add)
-        del_author = AuthorToolButton(self, "Delete", "Shift+Ctrl+D", "delete.png", self.author_table.delete)
-        up_author = AuthorToolButton(self, "Move Up", "Shift+Ctrl+Up", "up.png", self.author_table.up)
-        dwn_author = AuthorToolButton(self, "Move Down", "Shift+Ctrl+Down", "down.png", self.author_table.down)
+        add_author = ActionToolButton(self, "Add", "Shift+Ctrl+A", "plus.png", self.author_table.add)
+        del_author = ActionToolButton(self, "Delete", "Shift+Ctrl+D", "delete.png", self.author_table.delete)
+        up_author = ActionToolButton(self, "Move Up", "Shift+Ctrl+Up", "up.png", self.author_table.up)
+        dwn_author = ActionToolButton(self, "Move Down", "Shift+Ctrl+Down", "down.png", self.author_table.down)
 
-        self.author_tools.addWidget(add_author)
-        self.author_tools.addWidget(del_author)
-        self.author_tools.addWidget(up_author)
-        self.author_tools.addWidget(dwn_author)
-        self.author_tools.addStretch()
+        author_tools = QVBoxLayout()
+        author_tools.addWidget(add_author)
+        author_tools.addWidget(del_author)
+        author_tools.addWidget(up_author)
+        author_tools.addWidget(dwn_author)
+        author_tools.addStretch()
 
-        form.addRow(QLabel("Author"), self.author)
+        author = QHBoxLayout()
+        author.addWidget(self.author_table)
+        author.addLayout(author_tools)
+
+        form.addRow(QLabel("Author"), author)
 
         self.isbn_text = QLineEdit()
         form.addRow(QLabel("ISBN"), self.isbn_text)
@@ -153,7 +152,21 @@ class BookViewWidget(QDialog):
         self.isbn_text.returnPressed.connect(self.year_text.setFocus)
         self.year_text.returnPressed.connect(self.languages_combo.setFocus)
 
-        if self.book is not None:
+        self.current_index = None
+        self.max_index = None
+        self.button_save = None
+
+        self.populate(book, param)
+        self.buttons(form)
+        self.setLayout(form)
+
+    def keyPressEvent(self, event: QKeyEvent) -> None:
+        if event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
+            return
+        super().keyPressEvent(event)
+
+    def populate(self, book: Book, param: str) -> None:
+        if book is not None:
             self.title_text.setText(book.get_title())
             self.author_table.setRowCount(len(book.get_author()))
             for i, author in enumerate(book.get_author()):
@@ -176,35 +189,41 @@ class BookViewWidget(QDialog):
             self.languages_combo.setCurrentText(authority.desc_lang(self.config['language']))
             self.book_format_combo.setCurrentText(self.config['book_format'])
 
-        form.addRow(button_box)
-        self.setLayout(form)
-
     def save(self):
+        result = self.get_updated_book()
+        if result is not None:
+            with open(self.config['db_file'], "a+") as outfile:
+                outfile.write(json.dumps(result.json(), sort_keys=True, ensure_ascii=False))
+                outfile.write("\n")
+            self.accept()
+        return
+
+    def get_updated_book(self):
         if len(self.title_text.text()) == 0 \
                 or self.author_table.rowCount() == 0 \
                 or len(self.isbn_text.text()) == 0 \
                 or len(self.year_text.text()) == 0:
-            return
-        if not self.book_format_combo.hasFocus():
-            return
-        if self.book is None:
-            self.book = Book(
-                self.title_text.text(),
-                self.author_table.get_data(),
-                self.isbn_text.text(),
-                self.languages_combo.currentData(),
-                self.year_text.text(),
-                self.book_format_combo.currentData()
-            )
-        else:
-            self.book.set_title(self.title_text.text())
-            self.book.set_author(self.author_table.get_data())
-            self.book.set_isbn(self.isbn_text.text())
-            self.book.set_language(self.languages_combo.currentData())
-            self.book.set_year(self.year_text.text())
-            self.book.set_book_format(self.book_format_combo.currentData())
+            return None
+        return Book(
+            self.title_text.text(),
+            self.author_table.get_data(),
+            self.isbn_text.text(),
+            self.languages_combo.currentData(),
+            self.year_text.text(),
+            self.book_format_combo.currentData()
+        )
 
-        with open(self.config['db_file'], "a+") as outfile:
-            outfile.write(json.dumps(self.book.json(), sort_keys=True, ensure_ascii=False))
-            outfile.write("\n")
-        self.accept()
+    def get_title(self):
+        return "Books - Edit"
+
+    def buttons(self, layout: QFormLayout):
+        button_box = QHBoxLayout()
+        button_box.setAlignment(Qt.AlignRight)
+        self.button_save = QPushButton("Save")
+        self.button_save.clicked.connect(self.save)
+        button_cancel = QPushButton("Cancel")
+        button_cancel.clicked.connect(self.reject)
+        button_box.addWidget(button_cancel)
+        button_box.addWidget(self.button_save)
+        layout.addRow(button_box)
+        pass

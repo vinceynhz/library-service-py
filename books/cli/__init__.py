@@ -54,9 +54,7 @@ def create_book(config: dict):
     ).strip()
     book_format = BookFormat.parse(config['book_format'])
     if len(bf) != 0:
-        for name, member in BookFormat.__members__.items():
-            if name.lower()[0] == bf.lower()[0]:
-                book_format = member
+        book_format = openlibrary.book_format_initial(bf)
 
     return openlibrary.Book(
         title,
@@ -81,9 +79,7 @@ def update_config(config: dict):
         f"[P]aperback/[H]ardback/[A]udiobook/[E]book: {Color.RESET}"
     ).strip()
     if len(book_format) != 0:
-        for name, member in BookFormat.__members__.items():
-            if name.lower()[0] == book_format.lower()[0]:
-                config['book_format'] = name
+        config['book_format'] = openlibrary.book_format_initial(book_format).name
 
     db_file = input(
         f"{Color.BLUE}       DB File({config['db_file']}): {Color.RESET}"

@@ -37,6 +37,17 @@ class Book(object):
             '_book_format'
         )}
 
+    @classmethod
+    def from_json(cls, json_book: dict):
+        return Book(
+            json_book['title'],
+            json_book['author'],
+            json_book['isbn'],
+            json_book['language'],
+            json_book['year'],
+            BookFormat.parse(BookFormat.parse(json_book['book_format']))
+        )
+
     def get_title(self):
         return self._title
 
@@ -76,9 +87,7 @@ class Book(object):
 
     def set_book_format(self, book_format: Union[str, BookFormat]):
         if type(book_format) is str:
-            for name, member in BookFormat.__members__.items():
-                if name.lower()[0] == book_format.lower()[0]:
-                    self._book_format = member
+            self._book_format = book_format_initial(book_format)
         if type(book_format) is BookFormat:
             self._book_format = book_format
 
@@ -104,7 +113,7 @@ def search(param: str, config: dict):
         raise SearchException("Ambiguous search, use field names to narrow query")
 
     params = {
-        'q': param, 
+        'q': param,
         'fields': 'title,author_name,language,publish_year,isbn',
         'limit': 1
     }
@@ -134,6 +143,8 @@ def search(param: str, config: dict):
         if len(isbn) > 0:
             isbn.sort()
             isbn = isbn[-1]
+        else:
+            isbn = ""
 
     if 'language' in data:
         if 'eng' in data['language']:
@@ -155,3 +166,10 @@ def search(param: str, config: dict):
         year,
         BookFormat.parse(config['book_format'])
     )
+
+
+def book_format_initial(param: str) -> BookFormat:
+    for name, member in BookFormat.__members__.items():
+        if name.lower()[0] == param.lower()[0]:
+            return member
+    raise NameError(f"No BookFormat with initial: {param.upper()}")
