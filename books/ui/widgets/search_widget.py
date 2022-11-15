@@ -23,7 +23,7 @@ class SearchBox(QComboBox):
             self.on_enter()
         super().keyPressEvent(event)
 
-    def add_current(self):
+    def add_current(self) -> None:
         current_text = self.currentText()
         if current_text not in self.hist:
             self.hist.insert(0, current_text)
@@ -39,9 +39,9 @@ class SearchWidget(QWidget):
         super().__init__()
         self._on_search = on_search if on_search is not None else lambda x: print(f"Search: {x}")
 
-        self.text = SearchBox(self, self.search)
+        self.text: SearchBox = SearchBox(self, self.search)
 
-        self.button = QPushButton('Search')
+        self.button: QPushButton = QPushButton(self.tr("&Search"))
         self.button.clicked.connect(self.search)
 
         layout = QHBoxLayout()
@@ -51,13 +51,13 @@ class SearchWidget(QWidget):
 
         self.setLayout(layout)
 
-    def clear(self):
+    def clear(self) -> None:
         self.text.add_current()
-        self.setCurrentIndex(0)
-        self.setCurrentText("")
+        self.text.setCurrentIndex(0)
+        self.text.setCurrentText("")
 
-    def search(self):
+    def search(self) -> None:
         self._on_search(self.get_text())
 
-    def get_text(self):
+    def get_text(self) -> str:
         return self.text.currentText()

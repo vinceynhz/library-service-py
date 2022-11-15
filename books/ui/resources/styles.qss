@@ -28,10 +28,6 @@ QToolButton[author="true"] {
 }
 
 QSpinBox[nav="true"] {
-  min-width: 2em;
-  max-width: 5em;
-}
-
-QLabel[nav="true"] {
-
+    min-width: 2em;
+    max-width: 5em;
 }

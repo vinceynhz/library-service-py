@@ -1,8 +1,9 @@
 import requests
 import authority
+import books.config
 
-from dbschema.book import BookFormat
 from typing import Union
+from database.schema import BookFormat
 
 
 class SearchException(Exception):
@@ -102,7 +103,7 @@ class Book(object):
                f'{authority.desc_lang(self._language)}, {self._book_format.name}'
 
 
-def search(param: str, config: dict):
+def search(param: str):
     isbn = None
     if authority.is_num(param):
         isbn = param
@@ -117,7 +118,7 @@ def search(param: str, config: dict):
         'fields': 'title,author_name,language,publish_year,isbn',
         'limit': 1
     }
-    result = requests.get("http://openlibrary.org/search.json", params=params)
+    result = requests.get(books.config.get('openlibrary_search_url'), params=params)
 
     if result.status_code != requests.codes.ok:
         result.raise_for_status()
@@ -154,7 +155,7 @@ def search(param: str, config: dict):
         else:
             language = data['language'][0]
     else:
-        language = config['language']
+        language = books.config.get('language')
 
     year = data['publish_year'][-1] if 'publish_year' in data else ""
 
@@ -164,7 +165,7 @@ def search(param: str, config: dict):
         isbn,
         language,
         year,
-        BookFormat.parse(config['book_format'])
+        BookFormat.parse(books.config.get('book_format'))
     )
 
 

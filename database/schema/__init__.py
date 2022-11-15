@@ -4,10 +4,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from typing import Union
+
 from .book_contributor import BookContributor, ContributionType
 from .contributor import Contributor
 from .book import Book, BookFormat
-from .base import Base
+from .base import Base, BaseEnum
 
 import authority
 
@@ -26,24 +28,45 @@ class CloseableSession(object):
         self.session.close()
 
 
-def get_contributors():
+# GET
+def get_contributors() -> list:
     with CloseableSession() as session:
-        result = session.query(Contributor).all()
+        result: list = session.query(Contributor).all()
         return [c.json() for c in result]
 
 
-def get_contributor(contributor_id: int):
+# GET
+def get_contributor(contributor_id: int) -> Union[dict, None]:
     with CloseableSession() as session:
-        result = session.query(Contributor).filter(Contributor.id == contributor_id).first()
+        result: Contributor = session.query(Contributor).filter(Contributor.id == contributor_id).first()
         return result.json() if result is not None else None
 
 
-def add_contributor(new_contributor: Contributor):
+# POST
+def add_contributor(new_contributor: Contributor) -> str:
     with CloseableSession() as session:
         # ez pz slice of ch-z
         session.add(new_contributor)
         session.commit()
         return str(new_contributor.id)
+
+
+# PUT
+def update_contributor(contributor_id: int, data: dict) -> Union[tuple, None]:
+    with CloseableSession() as session:
+        result: Contributor = session.query(Contributor).filter(Contributor.id == contributor_id).first()
+        if result is None:
+            return None
+        updated = result.update(data)
+        if updated:
+            session.commit()
+        return result.json(), updated
+
+
+# # GET
+# def search_contributor(contributor_name: list):
+#     with CloseableSession() as session:
+#         result = session.query(Contributor).filter()
 
 
 def get_books():

@@ -9,8 +9,9 @@ import logging
 
 import authority
 import books.openlibrary as openlibrary
+import books.config
 
-from dbschema.book import BookFormat
+from database.schema import BookFormat
 
 __win__ = 'win' in sys.platform
 os.system("")
@@ -39,20 +40,20 @@ class Action(object):
     CONFIG = f"{Color.MAGENTA}[conf]{Color.RESET} "
 
 
-def create_book(config: dict):
+def create_book():
     title = input(f"{Color.BLUE}       Title: {Color.RESET}").strip()
     author = input(f"{Color.BLUE}       Author: {Color.RESET}").strip().split(",")
     isbn = input(f"{Color.BLUE}       ISBN: {Color.RESET}").strip()
     year = input(f"{Color.BLUE}       Year: {Color.RESET}").strip()
     language = input(
-        f"{Color.BLUE}       Language ({authority.desc_lang(config['language'])}): {Color.RESET}").strip()
+        f"{Color.BLUE}       Language ({authority.desc_lang(books.config.get('language'))}): {Color.RESET}").strip()
     if len(language) == 0:
-        language = config['language']
+        language = books.config.get('language')
     bf = input(
-        f"{Color.BLUE}       Format({config['book_format']}) "
+        f"{Color.BLUE}       Format({books.config.get('book_format')}) "
         f"[P]aperback/[H]ardback/[A]udiobook/[E]book: {Color.RESET}"
     ).strip()
-    book_format = BookFormat.parse(config['book_format'])
+    book_format = BookFormat.parse(books.config.get('book_format'))
     if len(bf) != 0:
         book_format = openlibrary.book_format_initial(bf)
 
@@ -66,41 +67,42 @@ def create_book(config: dict):
     )
 
 
-def update_config(config: dict):
+def update_config():
+    config: dict = {}
+
     print(f"{Action.CONFIG}Enter defaults (enter to keep existing value)")
     language = input(
-        f"{Color.BLUE}       Language ({authority.desc_lang(config['language'])}): {Color.RESET}"
+        f"{Color.BLUE}       Language ({authority.desc_lang(books.config.get('language'))}): {Color.RESET}"
     ).strip()
     if len(language) != 0:
         config['language'] = authority.match_lang(language)
 
     book_format = input(
-        f"{Color.BLUE}       Format({config['book_format']}) "
+        f"{Color.BLUE}       Format({books.config.get('book_format')}) "
         f"[P]aperback/[H]ardback/[A]udiobook/[E]book: {Color.RESET}"
     ).strip()
     if len(book_format) != 0:
         config['book_format'] = openlibrary.book_format_initial(book_format).name
 
     db_file = input(
-        f"{Color.BLUE}       DB File({config['db_file']}): {Color.RESET}"
+        f"{Color.BLUE}       DB File({books.config.get('db_file')}): {Color.RESET}"
     ).strip()
     if len(db_file) != 0:
         config['db_file'] = db_file
 
-    with open('./database/config.json', 'w+') as outfile:
-        json.dump(config, outfile, indent=4, sort_keys=True)
+    books.config.update(config)
     print(f"{Action.CONFIG}Config updated")
 
 
-def save_book(book: openlibrary.Book, config: dict):
-    with open(config['db_file'], "a+") as outfile:
+def save_book(book: openlibrary.Book):
+    with open(books.config.get('db_file'), "a+") as outfile:
         outfile.write(json.dumps(book.json(), sort_keys=True, ensure_ascii=False))
         outfile.write("\n")
 
     print(f"{Action.SAVE}Book saved!")
 
 
-def edit_book(book: openlibrary.Book, config: dict):
+def edit_book(book: openlibrary.Book):
     print(f"{Action.EDIT}Enter book details (enter to keep existing value)")
     print(f"{Action.EDIT}{book.get_title()}")
     title = input(f"{Color.BLUE}       Title: {Color.RESET}").strip()
@@ -136,34 +138,34 @@ def edit_book(book: openlibrary.Book, config: dict):
 
     book.generate_sha256()
     print(f"{Action.EDIT}{book}")
-    save_book(book, config)
+    save_book(book)
 
 
-def confirm_book(book: openlibrary.Book, config: dict):
+def confirm_book(book: openlibrary.Book):
     print(f"{Action.CONFIRM}{book}")
     action = input(f"{Action.CONFIRM}{Color.BLUE}[S]ave/[E]dit/[D]iscard]: {Color.RESET}").strip()
     if len(action) > 0:
         action = action.lower()[0]
         if action == 's':
-            save_book(book, config)
+            save_book(book)
         elif action == 'e':
-            edit_book(book, config)
+            edit_book(book)
 
 
-def search_book(param: str, config: dict):
+def search_book(param: str):
     print(f"{Action.FIND}Searching...")
     try:
-        new_book = openlibrary.search(param, config)
-        confirm_book(new_book, config)
+        new_book = openlibrary.search(param)
+        confirm_book(new_book)
     except openlibrary.SearchException as error:
         print(f"{Action.FIND}{Color.YELLOW}{error}{Color.RESET}")
         return
 
 
-def add_book(config):
+def add_book():
     print(f"{Action.ADD}Enter new book details")
-    new_book = create_book(config)
-    confirm_book(new_book, config)
+    new_book = create_book()
+    confirm_book(new_book)
 
 
 def view_book():
@@ -171,7 +173,6 @@ def view_book():
 
 
 def run():
-    logging.basicConfig(level=logging.DEBUG, filename='./cli.log')
     if not __win__:
         import readline
         import atexit
@@ -183,20 +184,8 @@ def run():
         atexit.register(readline.write_history_file, hist_file)
 
     print()
-    print(f"{Action.CONFIG}Reading default config")
-    try:
-        with open('./database/config.json', 'r') as infile:
-            config = json.load(infile)
-        print(f"{Action.CONFIG}Config loaded")
-    except FileNotFoundError:
-        print(f"{Action.CONFIG}Default config not set, creating one")
-        config = {
-            'db_file': './database/books.cli.db',
-            'language': 'eng',
-            'book_format': 'HARDBACK'
-        }
-        with open('./database/config.json', 'w+') as outfile:
-            json.dump(config, outfile, indent=2)
+    print(f"{Action.CONFIG}Reading config")
+    books.config.load("library.cli")
 
     while True:
         try:
@@ -206,13 +195,13 @@ def run():
             if entry in ["exit", "quit", "bye", "done"]:
                 break
             if entry == "add":
-                add_book(config)
+                add_book()
             elif entry == "view":
                 view_book()
             elif entry.startswith("conf"):
-                update_config(config)
+                update_config()
             else:
-                search_book(entry, config)
+                search_book(entry)
         except KeyboardInterrupt:
             print()
             pass
@@ -222,6 +211,6 @@ def run():
             print(f"{Color.YELLOW}{error}{Color.RESET}")
         except (Exception,) as error:
             print(f"{Color.RED}ERROR:{Color.RESET} {error}")
-            logging.exception("Error")
+            logging.getLogger("library.cli").exception("Error")
 
     print()

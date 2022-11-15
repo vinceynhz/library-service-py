@@ -16,21 +16,24 @@ $(VENV_PATH)/activate: requirements.txt
 clean:
 	rm -rRf database/library.db
 
-db: venv
-	$(VENV_PATH)/python db-init.py
-
 test: venv
 	$(VENV_PATH)/coverage run --omit="venv/*,*test_*.py" -m unittest -v tests/test_*.py
 	$(VENV_PATH)/coverage report
 	$(VENV_PATH)/coverage html
+
+cli: venv
+	$(VENV_PATH)/python service.py --cli
+
+ui: venv
+	$(VENV_PATH)/python service.py --ui
+
+db: venv
+	$(VENV_PATH)/python service.py --db-init
 
 service: db
 	$(eval NPROC := $(shell nproc))
 	$(eval WORKERS := $(shell expr 2 \* ${NPROC} + 1))
 	$(VENV_PATH)/gunicorn "service:start()" -w ${WORKERS} --timeout 1000 --log-config logging.conf
 
-cli: venv
-	$(VENV_PATH)/python service.py -cli
-
-ui: venv
-	$(VENV_PATH)/python service.py -ui
+fix: venv
+	$(VENV_PATH)/python service.py --fix

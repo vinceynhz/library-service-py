@@ -2,23 +2,22 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMainWindow, QLayout, QShortcut, QApplication
 from PyQt5.QtGui import QKeySequence, QIcon
 
-from books.ui.widgets import SettingsViewWidget, BookViewWidget, BookBrowserWidget, SearchWidget
+from books.ui.widgets import SettingsViewWidget, BookViewWidget, BookBrowserWidget, ContributorViewWidget, \
+    ContributorBrowserWidget, SearchWidget
 from books.ui.resources import get_icon, get_resource
 
 import sys
-import json
 import logging
 import books.openlibrary as openlibrary
+import books.config
 
 __win__ = 'win' in sys.platform
 
 
 # noinspection PyUnresolvedReferences
 class MainWindow(QMainWindow):
-    def __init__(self, config: dict):
+    def __init__(self):
         super().__init__()
-        self.config = config
-
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowMaximizeButtonHint)
         self.layout().setSizeConstraint(QLayout.SetFixedSize)
         self.setWindowTitle("Books")
@@ -29,15 +28,23 @@ class MainWindow(QMainWindow):
         tools = self.addToolBar("File")
         tools.setMovable(False)
 
-        add_action = tools.addAction(QIcon(get_icon("book.png")), "New Book")
-        add_action.setShortcut(QKeySequence('Ctrl+N'))
-        add_action.triggered.connect(self.on_add)
-        add_action.setToolTip("New Book - Ctrl+N")
+        add_book_action = tools.addAction(QIcon(get_icon("book.png")), "New Book")
+        add_book_action.setShortcut(QKeySequence('Ctrl+N'))
+        add_book_action.triggered.connect(self.on_add_book)
+        add_book_action.setToolTip("New Book - Ctrl+N")
 
-        browse_action = tools.addAction(QIcon(get_icon("library.png")), "Browse")
-        browse_action.setShortcut(QKeySequence('Ctrl+B'))
-        browse_action.triggered.connect(self.on_browse)
-        browse_action.setToolTip("Browse - Ctrl+B")
+        browse_books_action = tools.addAction(QIcon(get_icon("library.png")), "Browse Books")
+        browse_books_action.setShortcut(QKeySequence('Ctrl+B'))
+        browse_books_action.triggered.connect(self.on_browse_books)
+        browse_books_action.setToolTip("Browse - Ctrl+B")
+
+        tools.addSeparator()
+
+        add_contributor_action = tools.addAction(QIcon(get_icon("new_contributor.png")), "New Contributor")
+        add_contributor_action.triggered.connect(self.on_add_contributor)
+
+        browse_contributors_action = tools.addAction(QIcon(get_icon("contributors.png")), "Browse Contributor")
+        browse_contributors_action.triggered.connect(self.on_browse_contributors)
 
         tools.addSeparator()
 
@@ -55,8 +62,8 @@ class MainWindow(QMainWindow):
     def on_search(self, param: str):
         self.statusBar().showMessage("Searching: " + param)
         try:
-            book = openlibrary.search(param, self.config)
-            book_view = BookViewWidget(self, self.config, book)
+            book = openlibrary.search(param)
+            book_view = BookViewWidget(self, book)
             if book_view.exec():
                 self.statusBar().showMessage("Saved!")
             else:
@@ -67,26 +74,40 @@ class MainWindow(QMainWindow):
                 self.statusBar().showMessage("Error: " + error.message)
             else:
                 self.statusBar().showMessage("Error: " + str(error))
-            logging.error(error)
+            logging.getLogger("library.ui").error(error)
 
-    def on_add(self):
+    def on_add_book(self):
         self.statusBar().showMessage("Adding new book")
-        book_view = BookViewWidget(self, self.config, param=self.search.get_text())
+        book_view = BookViewWidget(self, param=self.search.get_text())
         if book_view.exec():
             self.statusBar().showMessage("Added!")
         else:
             self.statusBar().showMessage("Ready")
         self.search.clear()
 
-    def on_browse(self):
+    def on_browse_books(self):
         self.statusBar().showMessage("Browse books")
-        book_browser = BookBrowserWidget(self, self.config)
+        book_browser = BookBrowserWidget(self)
         book_browser.exec()
+        self.statusBar().showMessage("Done!")
+
+    def on_add_contributor(self):
+        self.statusBar().showMessage("Adding new contributor")
+        contributor_view = ContributorViewWidget(self)
+        if contributor_view.exec():
+            self.statusBar().showMessage("Added!")
+        else:
+            self.statusBar().showMessage("Ready")
+
+    def on_browse_contributors(self):
+        self.statusBar().showMessage("Browse contributors")
+        contributor_browser = ContributorBrowserWidget(self)
+        contributor_browser.exec()
         self.statusBar().showMessage("Done!")
 
     def on_settings(self):
         self.statusBar().showMessage("Settings")
-        settings_view = SettingsViewWidget(self, self.config)
+        settings_view = SettingsViewWidget(self)
         if settings_view.exec():
             self.statusBar().showMessage("Settings updated!")
         else:
@@ -94,7 +115,6 @@ class MainWindow(QMainWindow):
 
 
 def run(argv):
-    logging.basicConfig(level=logging.DEBUG, filename='./ui.log')
     if __win__:
         import ctypes
         myappid = 'tandv.library.books.ui'  # arbitrary string
@@ -119,10 +139,9 @@ def run(argv):
         icon.addFile(get_icon('1024.png'))
     app.setWindowIcon(icon)
 
-    with open('./database/config.json') as infile:
-        data = json.load(infile)
+    books.config.load("library.ui")
 
-    window = MainWindow(data)
+    window = MainWindow()
     window.show()
 
     exit_code = app.exec_()

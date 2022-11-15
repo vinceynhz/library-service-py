@@ -4,9 +4,7 @@
 import unittest
 from typing import Type
 
-from dbschema import ContributionType
-from dbschema.base import BaseEnum
-from dbschema.book import BookFormat
+from database.schema import ContributionType, BookFormat, BaseEnum
 
 
 class TestEnums(unittest.TestCase):

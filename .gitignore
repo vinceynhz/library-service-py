@@ -136,4 +136,5 @@ dmypy.json
 **/*.iml
 
 # Local database file
-database/*
+database/*.db
+database/*.json

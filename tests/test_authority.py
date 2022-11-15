@@ -32,7 +32,18 @@ class TestAuthorityMethods(unittest.TestCase):
 
     def test_name(self):
         for tc in self.contributor_data:
-            self.assertEqual(tc['name'], authority.name(tc['input']))
+            input_string = tc['input']['first_name']
+            expected_string = tc['expected']['first_name']
+            self.assertEqual(expected_string, authority.name(input_string))
+
+            input_string = tc['input']['last_names']
+            expected_string = tc['expected']['last_names']
+            self.assertEqual(expected_string, authority.name(input_string))
+
+            if 'honorific' in tc['input']:
+                input_string = tc['input']['honorific']
+                expected_string = tc['expected']['honorific']
+                self.assertEqual(expected_string, authority.name(input_string))
 
     def test_title(self):
         for tc in self.book_data:
@@ -41,7 +52,11 @@ class TestAuthorityMethods(unittest.TestCase):
     def test_sha256(self):
         # test from test cases
         for tc in self.contributor_data:
-            self.assertEqual(tc['sha256'], authority.sha56(tc['input']))
+            input = tc['input']['first_name'] + ' ' \
+                    + tc['input']['last_names'] \
+                    + (' ' + tc['input']['honorific'] if 'honorific' in tc['input'] and tc['input'][
+                'honorific'] is not None else '')
+            self.assertEqual(tc['expected']['sha256'], authority.sha56(input))
 
         # These two should also return the same SHA between them since the special characters do not count
         salems_lot_sha = "1C660F4FCD1746AC8C689C3142A3C79BE56077824BF11F434B6F150F78CFD236"
@@ -51,7 +66,8 @@ class TestAuthorityMethods(unittest.TestCase):
 
     def test_cataloguing(self):
         for tc in self.contributor_data:
-            self.assertEqual(tc['cataloguing'], authority.ordering_name(tc['input']))
+            input = tc['input']['last_names'] + ' ' + tc['input']['first_name']
+            self.assertEqual(tc['expected']['cataloguing'], authority.ordering_name(input))
         for tc in self.book_data:
             self.assertEqual(tc['title']['cataloguing'], authority.ordering_title(tc['title']['input']))
 

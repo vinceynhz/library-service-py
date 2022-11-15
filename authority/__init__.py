@@ -564,7 +564,7 @@ def ordering_name(string):
     starting from the first last name
     """
     words = [w for w in _normalize(string).split(' ') if w not in _honorifics and _roman.match(w) is None]
-    words.append(words.pop(0))
+    # words.append(words.pop(0))
     return ' '.join(words)
 
 
